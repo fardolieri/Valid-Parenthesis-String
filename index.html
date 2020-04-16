@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Lucida Console';
+        }
+
+        input {
+            width: 800px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+</head>
+
+<body>
+    <canvas id="myChart"></canvas>
+    <input id="input" width="50%" oninput="updateGraph(this.value)" value="(*))">
+    <p>A visualization of the solution of this <a href="https://leetcode.com/problems/valid-parenthesis-string/">LeetCode problem</a>.</p>
+</body>
+<script>
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'line',
+
+        // The data for our dataset
+        data: {
+            labels: [' ', '(', '*', ')', ')'],
+            datasets: [{
+                label: 'lower',
+                backgroundColor: 'rgb(200, 200, 200)',
+                borderColor: 'rgb(30, 30, 30)',
+                lineTension: 0,
+                data: [0, 1, 0, 0, 0],
+                fill: false
+            },
+            {
+                label: 'upper',
+                backgroundColor: 'rgb(200, 200, 200)',
+                borderColor: 'rgb(30, 30, 30)',
+                lineTension: 0,
+                data: [0, 1, 2, 1, 0],
+                fill: 0
+            }]
+        },
+
+        // Configuration options go here
+        options: {
+            aspectRatio: 4,
+            layout: {
+                padding: {
+                    left: 200,
+                    right: 200
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        stepSize: 1,
+                        suggestedMax: 5
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        fontFamily: 'Lucida Console',
+                        fontSize: 20
+                    }
+                }]
+            }
+        }
+    });
+
+    function updateGraph(str) {
+        chart.data.labels = (' '+str).split('')
+        let data = calcData(str)
+        if (data.status == 'ok') 
+            document.querySelector('input').style.backgroundColor = 'rgb(137,181,140)'
+        else if (data.status == 'fail')
+            document.querySelector('input').style.backgroundColor = 'rgb(181,115,112)'
+        chart.data.datasets[0].data = data.lower
+        chart.data.datasets[1].data = data.upper
+        chart.update()
+    }
+
+    function calcData(data) {
+        let res_lower = [0]
+        let res_upper = [0]
+        let lower = 0
+        let size = 0
+        for (c in data) {
+            c = data[c]
+            if (c == '(')
+                lower += 1
+            else if (c == ')')
+                lower -= 1
+            else if (c == '*') {
+                lower -= 1
+                size += 2
+            }
+            else
+                return { status: 'fail', lower: res_lower, upper: res_upper }
+
+            if (lower + size < 0)
+                return { status: 'fail', lower: res_lower, upper: res_upper }
+            if (lower < 0) {
+                lower += 1
+                size -= 1
+                if (size < 0)
+                    return { status: 'fail', lower: res_lower, upper: res_upper }
+            }
+            res_lower.push(lower)
+            res_upper.push(lower + size)
+        }
+        if (lower <= 0 && 0 <= lower + size)
+            return { status: 'ok', lower: res_lower, upper: res_upper }
+        else
+            return { status: 'fail', lower: res_lower, upper: res_upper }
+    }
+
+    updateGraph(document.querySelector('input').value)
+</script>
+
+</html>
